@@ -1,2 +1,3 @@
-# ardino
+# Ardino
+
 Dino game in Arduino.
