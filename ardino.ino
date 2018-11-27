@@ -53,4 +53,5 @@ void loop() {
     placeBlockAt += random(400, 600);
   }
   updateBlocks();
+  delay(100);
 }
