@@ -61,25 +61,21 @@ void placeBlock() {
   int width = random(6, 8);
   // blocks are stored as { x, y, width }
   int i = front + numBlocks++;
-  Serial.print("PLACING BLOCK "); Serial.println(i);
   blocks[i][0] = GLCD.Width;
   blocks[i][1] = ground - height;
   blocks[i][2] = width;
 }
 
 void updateBlocks() {
-  Serial.println("updating blocks =====");
-  Serial.println(front);
-  Serial.println(numBlocks);
+  // Serial.println("updating blocks =====");
   int bound = front + numBlocks;
   for (int i = front; i < bound; i++) { // logic needa be changed
-    Serial.print(i);
     blocks[i][0]--;
     int x = blocks[i][0];
     int y = blocks[i][1];
     int width = blocks[i][2];
-    Serial.print(" "); Serial.print(x); Serial.print(" "); Serial.print(width);
-    Serial.println();
+    // Serial.print(" "); Serial.print(x); Serial.print(" "); Serial.print(width);
+    // Serial.println();
     int height = ground - y;
     GLCD.FillRect(x + width, y, 1, height, PIXEL_OFF); // undraw tail
     if (x > GLCD.Left) {
@@ -94,8 +90,11 @@ void updateBlocks() {
 int dinoX = GLCD.Left + dinoSize + 6;
 int dinoY = 0;
 void drawDino(int y) {
+  Serial.print("drawing dino ");
+  Serial.print(dinoX); Serial.print(" "); Serial.println(dinoY);
   GLCD.DrawCircle(dinoX, dinoY, dinoSize, PIXEL_OFF);
-  GLCD.DrawCircle(dinoX, y, dinoSize);
+  dinoY = y;
+  GLCD.DrawCircle(dinoX, dinoY, dinoSize);
 }
 void drawDino() {
   drawDino(dinoY);
