@@ -46,7 +46,7 @@ void setup()
   pinMode(buttonBpin, INPUT_PULLUP);
 }
 
-int dinoSize = 12;
+int dinoSize = 6;
 void drawSkeleton() {
   GLCD.FillRect(GLCD.Left, ground, GLCD.Right, GLCD.Bottom);
   drawDino(ground - dinoSize);
@@ -55,26 +55,29 @@ void drawSkeleton() {
 int blocks[10][3];
 int numBlocks = 0;
 long placeBlockAt = 200;
-
 void placeBlock() {
-  int height = random(4, 8);
-  int width = random(4, 6);
+  int height = random(14, 16);
+  int width = random(6, 8);
   // blocks are stored as { x, y, width }
-  blocks[numBlocks][0] = GLCD.Width;
-  blocks[numBlocks][1] = ground - height;
-  blocks[numBlocks][2] = width;
+  int i = numBlocks % 10;  
+  blocks[i][0] = GLCD.Width;
+  blocks[i][1] = ground - height;
+  blocks[i][2] = width;
   numBlocks++;
 }
 
 void updateBlocks() {
-  for (int i = 0; i < numBlocks; i++) {
-    blocks[i][0]--;
+  for (int i = 0; i < numBlocks; i++) { // logic needa be changed
     int x = blocks[i][0];
     int y = blocks[i][1];
     int width = blocks[i][2];
     int height = ground - y;
     GLCD.FillRect(x + width, y, 1, height, PIXEL_OFF); // undraw tail
-    GLCD.FillRect(x, y, 1, height, PIXEL_ON); // redraw head
+    if (x > GLCD.Left) {
+      GLCD.FillRect(x, y, 1, height, PIXEL_ON); // redraw head
+    } else if (x + width <= GLCD.Left) {
+      
+    }
   }
 }
 
@@ -83,6 +86,9 @@ int dinoY = 0;
 void drawDino(int y) {
   GLCD.DrawCircle(dinoX, dinoY, dinoSize, PIXEL_OFF);
   GLCD.DrawCircle(dinoX, y, dinoSize);
+}
+void drawDino() {
+  drawDino(dinoY);
 }
 
 int jumpHeight = 20;
@@ -103,21 +109,18 @@ boolean isJumping = false;
 void loop() {
   if (millis() >= placeBlockAt) {
     placeBlock();
-    placeBlockAt += random(3000, 4000);
+    placeBlockAt += random(3500, 5000);
   }
   updateBlocks();
   if (digitalRead(buttonApin) == LOW) { // jump
     if (!isJumping) isJumping = true;
-    GLCD.print("mei's butt");
-    soundIt();
   }
   if (digitalRead(buttonBpin) == LOW) {
-    GLCD.print("is hairy");
-    soundIt();
   }
 
   if (isJumping) {
     isJumping = jump();
   }
-  delay(100);
+  drawDino();
+  delay(40);
 }
