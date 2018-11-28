@@ -90,8 +90,6 @@ void updateBlocks() {
 int dinoX = GLCD.Left + dinoSize + 6;
 int dinoY = 0;
 void drawDino(int y) {
-  Serial.print("drawing dino ");
-  Serial.print(dinoX); Serial.print(" "); Serial.println(dinoY);
   GLCD.DrawCircle(dinoX, dinoY, dinoSize, PIXEL_OFF);
   dinoY = y;
   GLCD.DrawCircle(dinoX, dinoY, dinoSize);
@@ -101,17 +99,25 @@ void drawDino() {
 }
 
 int jumpHeight = 20;
-boolean goingUp = false;
+boolean goingUp = true;
 boolean jump() {
+  Serial.println("jumping ========");
+  Serial.println(dinoY);
   if (goingUp) {
-    drawDino(dinoY--);
+    Serial.println("going up");
+    drawDino(dinoY - 1);
     if (dinoY <= ground - jumpHeight) {
       goingUp = false;
     }
     return true;
   }
-  drawDino(dinoY++);
-  return dinoY >= ground;
+  drawDino(dinoY + 1);
+  if (dinoY + dinoSize < ground) {
+    return true;
+  } else {
+    goingUp = true;
+    return false;
+  }
 }
 
 boolean isJumping = false;
@@ -129,7 +135,8 @@ void loop() {
 
   if (isJumping) {
     isJumping = jump();
+  } else {    
+    drawDino();
   }
-  drawDino();
   delay(40);
 }
