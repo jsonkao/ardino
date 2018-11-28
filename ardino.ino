@@ -100,9 +100,9 @@ void drawDino() {
 double jumpV = -5.0;
 boolean goingUp = true;
 double dinoV = 0.0;
-double g = 0.45;
+double g = 0.6;
 boolean jump() {
-  int newY = dinoY + ((int) dinoV);
+  int newY = dinoY + round(dinoV);
   if (newY + dinoSize < ground) {
     drawDino(newY);
     dinoV += g;
