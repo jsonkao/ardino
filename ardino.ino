@@ -33,6 +33,7 @@ void soundIt() {
 }
 const int ground = GLCD.Bottom - 10;
 
+unsigned long startMillis;
 void setup()
 {
   Serial.begin(9600); 
@@ -44,6 +45,7 @@ void setup()
   pinMode(ledPin, OUTPUT);
   pinMode(buttonApin, INPUT_PULLUP);  
   pinMode(buttonBpin, INPUT_PULLUP);
+  startMillis = millis();
 }
 
 int dinoSize = 6;
@@ -57,7 +59,7 @@ long placeBlockAt = 200;
 int front = 0;
 int numBlocks = 0;
 void placeBlock() {
-  int height = random(14, 16);
+  int height = random(10, 14);
   int width = random(6, 8);
   // blocks are stored as { x, y, width }
   int i = front + numBlocks++;
@@ -67,19 +69,16 @@ void placeBlock() {
 }
 
 void updateBlocks() {
-  // Serial.println("updating blocks =====");
   int bound = front + numBlocks;
   for (int i = front; i < bound; i++) { // logic needa be changed
-    blocks[i][0]--;
+    blocks[i][0] -= 2;
     int x = blocks[i][0];
     int y = blocks[i][1];
     int width = blocks[i][2];
-    // Serial.print(" "); Serial.print(x); Serial.print(" "); Serial.print(width);
-    // Serial.println();
     int height = ground - y;
-    GLCD.FillRect(x + width, y, 1, height, PIXEL_OFF); // undraw tail
+    GLCD.FillRect(x + width, y, 2, height, PIXEL_OFF); // undraw tail
     if (x > GLCD.Left) {
-      GLCD.FillRect(x, y, 1, height, PIXEL_ON); // redraw head
+      GLCD.FillRect(x, y, 2, height, PIXEL_ON); // redraw head
     } else if (x + width <= GLCD.Left) {
       front++;
       numBlocks--;
@@ -98,37 +97,41 @@ void drawDino() {
   drawDino(dinoY);
 }
 
-int jumpHeight = 20;
+double jumpV = -5.0;
 boolean goingUp = true;
+double dinoV = 0.0;
+double g = 0.45;
 boolean jump() {
-  Serial.println("jumping ========");
-  Serial.println(dinoY);
-  if (goingUp) {
-    Serial.println("going up");
-    drawDino(dinoY - 1);
-    if (dinoY <= ground - jumpHeight) {
-      goingUp = false;
-    }
-    return true;
-  }
-  drawDino(dinoY + 1);
-  if (dinoY + dinoSize < ground) {
+  int newY = dinoY + ((int) dinoV);
+  if (newY + dinoSize < ground) {
+    drawDino(newY);
+    dinoV += g;
     return true;
   } else {
-    goingUp = true;
+    drawDino(ground - dinoSize);
     return false;
   }
 }
 
 boolean isJumping = false;
+unsigned long currentMillis;
+const unsigned long period = 50;
 void loop() {
+  currentMillis = millis();
+  if (currentMillis - startMillis < period) {
+    return;
+  }
+  // Serial.println(currentMillis);
   if (millis() >= placeBlockAt) {
     placeBlock();
     placeBlockAt += random(3500, 5000);
   }
   updateBlocks();
   if (digitalRead(buttonApin) == LOW) { // jump
-    if (!isJumping) isJumping = true;
+    if (!isJumping) {
+      isJumping = true;
+      dinoV = jumpV;
+    }
   }
   if (digitalRead(buttonBpin) == LOW) {
   }
@@ -138,5 +141,5 @@ void loop() {
   } else {    
     drawDino();
   }
-  delay(40);
+  startMillis = currentMillis;
 }
