@@ -52,31 +52,41 @@ void drawSkeleton() {
   drawDino(ground - dinoSize);
 }
 
-int blocks[10][3];
-int numBlocks = 0;
+int blocks[100][3];
 long placeBlockAt = 200;
+int front = 0;
+int numBlocks = 0;
 void placeBlock() {
   int height = random(14, 16);
   int width = random(6, 8);
   // blocks are stored as { x, y, width }
-  int i = numBlocks % 10;  
+  int i = front + numBlocks++;
+  Serial.print("PLACING BLOCK "); Serial.println(i);
   blocks[i][0] = GLCD.Width;
   blocks[i][1] = ground - height;
   blocks[i][2] = width;
-  numBlocks++;
 }
 
 void updateBlocks() {
-  for (int i = 0; i < numBlocks; i++) { // logic needa be changed
+  Serial.println("updating blocks =====");
+  Serial.println(front);
+  Serial.println(numBlocks);
+  int bound = front + numBlocks;
+  for (int i = front; i < bound; i++) { // logic needa be changed
+    Serial.print(i);
+    blocks[i][0]--;
     int x = blocks[i][0];
     int y = blocks[i][1];
     int width = blocks[i][2];
+    Serial.print(" "); Serial.print(x); Serial.print(" "); Serial.print(width);
+    Serial.println();
     int height = ground - y;
     GLCD.FillRect(x + width, y, 1, height, PIXEL_OFF); // undraw tail
     if (x > GLCD.Left) {
       GLCD.FillRect(x, y, 1, height, PIXEL_ON); // redraw head
     } else if (x + width <= GLCD.Left) {
-      
+      front++;
+      numBlocks--;
     }
   }
 }
