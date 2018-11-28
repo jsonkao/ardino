@@ -68,6 +68,11 @@ void placeBlock() {
   blocks[i][2] = width;
 }
 
+void writeScore(int s) {  
+  String str = String(s);
+  GLCD.DrawString(str, gTextfmt_right, gTextfmt_top, eraseTO_EOL);
+}
+
 void updateBlocks() {
   int bound = front + numBlocks;
   for (int i = front; i < bound; i++) { // logic needa be changed
@@ -81,6 +86,7 @@ void updateBlocks() {
       GLCD.FillRect(x, y, 2, height, PIXEL_ON); // redraw head
     } else if (x + width <= GLCD.Left) {
       front++;
+      // writeScore(front); why doesn't this work?
       numBlocks--;
     }
   }
@@ -141,5 +147,6 @@ void loop() {
   } else {    
     drawDino();
   }
+  // if (checkCollision()) {}
   startMillis = currentMillis;
 }
