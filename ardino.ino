@@ -54,26 +54,24 @@ void drawSkeleton() {
   drawDino(ground - dinoSize);
 }
 
-int blocks[startScore][3];
+int blocks[startScore][4];
 long placeBlockAt = 200;
 int front = 0;
 int numBlocks = 0;
 void placeBlock() {
-  int height = random(10, 14);
+  boolean shouldDuck = random(3) < 1;
+  int height = random(dinoSize*2, dinoSize*2 + (shouldDuck ? 2 : 6));
   int width = random(6, 8);
-  // blocks are stored as { x, y, width }
+  
+  // blocks are stored as { x, y, width, height }
   int i = front + numBlocks++;
   blocks[i][0] = GLCD.Width;
-  blocks[i][1] = ground - height;
   blocks[i][2] = width;
+  blocks[i][1] = ground - height;
+  blocks[i][3] = shouldDuck ? dinoSize/2 : height;
 }
 
-void drawScore(int score) {  
-  char yat[3];
-  yat[0] = 48 + score/100;
-  yat[1] = 48 + score/10;
-  yat[2] = 48 + score%10;
-  char ya[] = {score};
+void drawScore(int score) {
   GLCD.EraseTextLine(0);
   GLCD.PrintNumber(score);
 }
@@ -85,7 +83,7 @@ void updateBlocks() {
     int x = blocks[i][0];
     int y = blocks[i][1];
     int width = blocks[i][2];
-    int height = ground - y;
+    int height = blocks[i][3];
     GLCD.FillRect(x + width, y, 2, height, PIXEL_OFF); // undraw tail
     if (x > GLCD.Left) {
       GLCD.FillRect(x, y, 2, height, PIXEL_ON); // redraw head
@@ -147,26 +145,30 @@ void loop() {
   }
   updateBlocks();
   if (digitalRead(buttonApin) == LOW) { // jump
-    if (!isJumping) {
+    if (!isJumping && !isCrouching) {
       isJumping = true;
-      isCrouching = false;
       dinoV = jumpV;
     }
   }
-  if (digitalRead(buttonBpin) == LOW && !isCrouching) {
-    isCrouching = true;
-    dinoY += round(dinoSize / 2);
+  if (!isJumping) {
+    if (digitalRead(buttonBpin) == LOW && !isCrouching) {
+      isCrouching = true;
+      dinoY += round(dinoSize / 2);
+    }
+    if (digitalRead(buttonBpin) == HIGH && isCrouching) {
+      isCrouching = false;
+      dinoY -= round(dinoSize / 2);
+    }
   }
-  if (digitalRead(buttonBpin) == HIGH && isCrouching) {
-    isCrouching = false;
-    dinoY -= round(dinoSize / 2);
-  }
-
   if (isJumping) {
     isJumping = jump();
   } else {    
     drawDino();
   }
-  // if (checkCollision()) {}
+  if (collided()) {
+    Serial.println("collilded");
+  }
   startMillis = currentMillis;
 }
+
+void
