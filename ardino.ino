@@ -34,6 +34,7 @@ void soundIt() {
 const int ground = GLCD.Bottom - 10;
 const int startScore = 30;
 unsigned long startMillis;
+boolean over;
 void setup()
 {
   Serial.begin(9600); 
@@ -41,11 +42,13 @@ void setup()
   GLCD.SelectFont(System5x7);
 
   drawSkeleton();
-  drawScore(startScore);
+  drawScore(startScore);  
   pinMode(ledPin, OUTPUT);
   pinMode(buttonApin, INPUT_PULLUP);  
   pinMode(buttonBpin, INPUT_PULLUP);
-  startMillis = millis();
+  startGame();
+  GLCD.DrawString("Press any button...  Left = Jump, Right = Crouch", gTextfmt_left, gTextfmt_center);
+  over = true;
 }
 
 int dinoSize = 6;
@@ -56,8 +59,8 @@ void drawSkeleton() {
 
 int blocks[startScore][4];
 long placeBlockAt = 200;
-int front = 0;
-int numBlocks = 0;
+int front;
+int numBlocks;
 void placeBlock() {
   boolean shouldDuck = random(3) < 1;
   int height = random(dinoSize*2, dinoSize*2 + (shouldDuck ? 2 : 6));
@@ -95,9 +98,9 @@ void updateBlocks() {
   }
 }
 
-int dinoX = GLCD.Left + dinoSize + 6;
+const int dinoX = GLCD.Left + dinoSize + 6;
 int dinoY = 0;
-int isCrouching = false;
+boolean isCrouching;
 void drawDino(int y) {
   if (isCrouching) {
     dinoY = y;
@@ -114,10 +117,10 @@ void drawDino() {
   drawDino(dinoY);
 }
 
-double jumpV = -5.0;
-boolean goingUp = true;
-double dinoV = 0.0;
-double g = 0.6;
+const double jumpV = -5.0;
+boolean goingUp;
+double dinoV;
+const double g = 0.6;
 boolean jump() {
   int newY = dinoY + round(dinoV);
   if (newY + dinoSize < ground) {
@@ -130,15 +133,35 @@ boolean jump() {
   }
 }
 
-boolean isJumping = false;
+boolean isJumping;
 unsigned long currentMillis;
 const unsigned long period = 50;
+void startGame() {
+  isJumping = false;
+  over = false;
+  goingUp = true;
+  isCrouching = false;
+  dinoV = 0.0;
+  front = 0;
+  numBlocks = 0;
+  dinoY = ground - dinoSize;
+  startMillis = millis();
+  placeBlockAt = startMillis + 200;
+  GLCD.DrawString("                                                            ", gTextfmt_center, gTextfmt_center, eraseFULL_LINE);
+}
+
 void loop() {
   currentMillis = millis();
   if (currentMillis - startMillis < period) {
     return;
   }
-  // Serial.println(currentMillis);
+  if (over) {
+    if (digitalRead(buttonApin) == LOW || digitalRead(buttonBpin) == LOW) {
+      startGame();
+    }
+    return;
+  }
+
   if (millis() >= placeBlockAt) {
     placeBlock();
     placeBlockAt += random(3500, 5000);
@@ -166,9 +189,35 @@ void loop() {
     drawDino();
   }
   if (collided()) {
-    Serial.println("collilded");
+    GLCD.DrawString("Game over. Press any button to restart.", gTextfmt_center, gTextfmt_center);  
+    over = true;
   }
   startMillis = currentMillis;
 }
 
-void
+boolean collided() {
+  if (numBlocks == 0) {
+    return false;
+  }
+  int e = 1;
+  int boxR = dinoSize - e;
+  int x = dinoX - boxR;
+  int y = dinoY - boxR;
+  int w = 2*boxR;
+  int h = 2*boxR;
+  int bx = blocks[front][0];
+  int by = blocks[front][1];
+  int bu = bx + blocks[front][2];
+  int bv = by + blocks[front][3];
+  for (int haveW = 0; haveW < 2; haveW++) {
+    for (int haveH = 0; haveH < 2; haveH++) {
+      int px = x + haveW * w;
+      int py = y + haveH * h;
+      if (px >= bx && px <= bu && py >= by && py <= bv) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+ 
