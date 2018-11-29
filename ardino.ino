@@ -134,10 +134,12 @@ boolean jump() {
 }
 
 boolean isJumping;
+boolean saved;
 unsigned long currentMillis;
 const unsigned long period = 50;
 void startGame() {
   isJumping = false;
+  saved = false;
   over = false;
   goingUp = true;
   isCrouching = false;
@@ -145,9 +147,10 @@ void startGame() {
   front = 0;
   numBlocks = 0;
   dinoY = ground - dinoSize;
+  drawScore(startScore);
+  GLCD.DrawString("                                                            ", gTextfmt_center, gTextfmt_center, eraseFULL_LINE);
   startMillis = millis();
   placeBlockAt = startMillis + 200;
-  GLCD.DrawString("                                                            ", gTextfmt_center, gTextfmt_center, eraseFULL_LINE);
 }
 
 void loop() {
@@ -156,6 +159,14 @@ void loop() {
     return;
   }
   if (over) {
+    if (digitalRead(buttonApin) == LOW || digitalRead(buttonBpin) == LOW) {
+      startGame();
+    }
+    return;
+  }
+  if (front == startScore) {
+    GLCD.DrawString("YOU WON!!", gTextfmt_center, gTextfmt_row(2), eraseFULL_LINE);
+    GLCD.DrawString("Press a button to restart.", gTextfmt_center, gTextfmt_center);
     if (digitalRead(buttonApin) == LOW || digitalRead(buttonBpin) == LOW) {
       startGame();
     }
