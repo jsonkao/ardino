@@ -32,7 +32,7 @@ void soundIt() {
   }
 }
 const int ground = GLCD.Bottom - 10;
-
+const int startScore = 30;
 unsigned long startMillis;
 void setup()
 {
@@ -41,7 +41,7 @@ void setup()
   GLCD.SelectFont(System5x7);
 
   drawSkeleton();
-
+  drawScore(startScore);
   pinMode(ledPin, OUTPUT);
   pinMode(buttonApin, INPUT_PULLUP);  
   pinMode(buttonBpin, INPUT_PULLUP);
@@ -54,7 +54,7 @@ void drawSkeleton() {
   drawDino(ground - dinoSize);
 }
 
-int blocks[100][3];
+int blocks[startScore][3];
 long placeBlockAt = 200;
 int front = 0;
 int numBlocks = 0;
@@ -68,9 +68,14 @@ void placeBlock() {
   blocks[i][2] = width;
 }
 
-void writeScore(int s) {  
-  String str = String(s);
-  GLCD.DrawString(str, gTextfmt_right, gTextfmt_top, eraseTO_EOL);
+void drawScore(int score) {  
+  char yat[3];
+  yat[0] = 48 + score/100;
+  yat[1] = 48 + score/10;
+  yat[2] = 48 + score%10;
+  char ya[] = {score};
+  GLCD.EraseTextLine(0);
+  GLCD.PrintNumber(score);
 }
 
 void updateBlocks() {
@@ -86,7 +91,7 @@ void updateBlocks() {
       GLCD.FillRect(x, y, 2, height, PIXEL_ON); // redraw head
     } else if (x + width <= GLCD.Left) {
       front++;
-      // writeScore(front); why doesn't this work?
+      drawScore(startScore - front);
       numBlocks--;
     }
   }
@@ -94,10 +99,18 @@ void updateBlocks() {
 
 int dinoX = GLCD.Left + dinoSize + 6;
 int dinoY = 0;
+int isCrouching = false;
 void drawDino(int y) {
-  GLCD.DrawCircle(dinoX, dinoY, dinoSize, PIXEL_OFF);
-  dinoY = y;
-  GLCD.DrawCircle(dinoX, dinoY, dinoSize);
+  if (isCrouching) {
+    dinoY = y;
+    GLCD.DrawCircle(dinoX, dinoY - round(dinoSize / 2), dinoSize, PIXEL_OFF);
+    GLCD.FillEllipse(dinoX, dinoY, dinoSize, round(dinoSize/2));
+  } else {
+    GLCD.DrawCircle(dinoX, dinoY, dinoSize, PIXEL_OFF);
+    GLCD.FillEllipse(dinoX, dinoY + round(dinoSize / 2), dinoSize, round(dinoSize/2), PIXEL_OFF); // undraw ellipse
+    dinoY = y;
+    GLCD.DrawCircle(dinoX, dinoY, dinoSize);
+  }
 }
 void drawDino() {
   drawDino(dinoY);
@@ -136,10 +149,17 @@ void loop() {
   if (digitalRead(buttonApin) == LOW) { // jump
     if (!isJumping) {
       isJumping = true;
+      isCrouching = false;
       dinoV = jumpV;
     }
   }
-  if (digitalRead(buttonBpin) == LOW) {
+  if (digitalRead(buttonBpin) == LOW && !isCrouching) {
+    isCrouching = true;
+    dinoY += round(dinoSize / 2);
+  }
+  if (digitalRead(buttonBpin) == HIGH && isCrouching) {
+    isCrouching = false;
+    dinoY -= round(dinoSize / 2);
   }
 
   if (isJumping) {
