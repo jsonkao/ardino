@@ -3,6 +3,8 @@
 #include <openGLCD.h>
 #include "pitches.h"
 
+// TODO: make different noises with jump/slide
+
 int ledPin = 2;
 int buttonApin = 12;
 int buttonBpin = 13;
@@ -15,9 +17,7 @@ int noteDurations[] = {
   4, 8, 8, 4, 4, 4, 4, 4
 };
 void soundIt() {
-  // TODO: make different nouses when jump/slide
   for (int thisNote = 0; thisNote < 8; thisNote++) {
-
     // to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
     int noteDuration = 1000 / noteDurations[thisNote];
