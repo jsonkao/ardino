@@ -160,6 +160,7 @@ void loop() {
   }
   if (over) {
     if (digitalRead(buttonApin) == LOW || digitalRead(buttonBpin) == LOW) {
+      soundIt();
       startGame();
     }
     return;
