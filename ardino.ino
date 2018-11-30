@@ -164,6 +164,7 @@ void loop() {
     }
     return;
   }
+  
   if (front == startScore) {
     GLCD.DrawString("YOU WON!!", gTextfmt_center, gTextfmt_row(2), eraseFULL_LINE);
     GLCD.DrawString("Press a button to restart.", gTextfmt_center, gTextfmt_center);
